@@ -22,7 +22,7 @@ log_to_stream(format="%(asctime)s %(levelname)s %(name)s: %(message)s", name='CC
 
 class CCJob(MRJob):
     """
-    A simple way to run MRJob jobs on CommonCrawl Data
+    A simple way to run MRJob jobs on Common Crawl data
     """
     def configure_options(self):
         super(CCJob, self).configure_options()

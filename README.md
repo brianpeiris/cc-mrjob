@@ -112,7 +112,7 @@ To launch the job on a Hadoop cluster of AWS EC2 instances (e.g., CDH), see the 
 
 To run your mrjob task over the entirety of the Common Crawl dataset, you can use the WARC, WAT, or WET file listings found at `CC-MAIN-YYYY-WW/[warc|wat|wet].paths.gz`.
 
-As an example, the [August 2014 crawl](http://commoncrawl.org/august-2014-crawl-data-available/) has 52,849 WARC files listed by [warc.paths.gz](https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2014-35/warc.paths.gz).
+As an example, the [August 2014 crawl](http://commoncrawl.org/august-2014-crawl-data-available/) has 52,849 WARC files listed by [warc.paths.gz](https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-2014-35/warc.paths.gz). You'll find pointers to listings for all crawls including the most recent ones on the [commoncrawl Public Data Set bucket](https://commoncrawl.s3.amazonaws.com/crawl-data/index.html) and the [get-started page](https://commoncrawl.org/the-data/get-started/).
 
 It is highly recommended to run over batches of files at a time and then perform a secondary reduce over those results.
 Running a single job over the entirety of the dataset complicates the situation substantially.
