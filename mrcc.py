@@ -24,13 +24,12 @@ class CCJob(MRJob):
     """
     A simple way to run MRJob jobs on Common Crawl data
     """
-    def configure_options(self):
-        super(CCJob, self).configure_options()
-        self.pass_through_option('--runner')
-        self.pass_through_option('-r')
-        self.add_passthrough_option('--s3_local_temp_dir',
-                                    help='local temporary directory to buffer content from S3',
-                                    default=None)
+    def configure_args(self):
+        super(CCJob, self).configure_args()
+        self.pass_arg_through('--runner')
+        self.add_passthru_arg('--s3_local_temp_dir',
+                              help='local temporary directory to buffer content from S3',
+                              default=None)
 
     def process_record(self, record):
         """
