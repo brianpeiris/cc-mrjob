@@ -38,6 +38,12 @@ else
 	S3_LOCAL_TEMP_DIR=""
 fi
 
+if [ -n "$S3_BUCKET" ]; then
+	S3_BUCKET="--bucket=$S3_BUCKET"
+else
+	S3_BUCKET=""
+fi
+
 python $JOB.py \
        -r hadoop \
        --jobconf "mapreduce.map.memory.mb=1200" \
@@ -52,5 +58,6 @@ python $JOB.py \
        --no-output \
        --cleanup NONE \
        $S3_LOCAL_TEMP_DIR \
+       $S3_BUCKET \
        --output-dir "$OUTPUT" \
        "$INPUT"
