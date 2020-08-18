@@ -30,6 +30,9 @@ class CCJob(MRJob):
         self.add_passthru_arg('--s3_local_temp_dir',
                               help='local temporary directory to buffer content from S3',
                               default=None)
+        self.add_passthru_arg('--bucket',
+                              help='bucket to read data from S3',
+                              default='commoncrawl')
 
     def process_record(self, record):
         """
@@ -40,7 +43,7 @@ class CCJob(MRJob):
     def mapper(self, _, line):
         """
         The Map of MapReduce
-        If you're using Hadoop or EMR, it pulls the CommonCrawl files from S3,
+        If you're using Hadoop or EMR, it pulls the Common Crawl files from S3,
         otherwise it pulls from the local filesystem. Dispatches each file to
         `process_record`.
         """
@@ -51,26 +54,30 @@ class CCJob(MRJob):
                 signature_version=botocore.UNSIGNED,
                 read_timeout=180,
                 retries={'max_attempts' : 20})
+            if self.options.bucket != 'commoncrawl':
+                # use defaults if data is read from a custom bucket
+                boto_config = botocore.client.Config()
             s3client = boto3.client('s3', config=boto_config)
             # Verify bucket
             try:
-                s3client.head_bucket(Bucket='commoncrawl')
+                s3client.head_bucket(Bucket=self.options.bucket)
             except botocore.exceptions.ClientError as exception:
-                LOG.error('Failed to access bucket "commoncrawl": %s', exception)
+                LOG.error('Failed to access bucket "%s": %s',
+                          self.options.bucket, exception)
                 return
             # Check whether WARC/WAT/WET input exists
             try:
-                s3client.head_object(Bucket='commoncrawl',
+                s3client.head_object(Bucket=self.options.bucket,
                                      Key=line)
             except botocore.client.ClientError as exception:
                 LOG.error('Input not found: %s', line)
                 return
             # Start a connection to one of the WARC/WAT/WET files
-            LOG.info('Loading s3://commoncrawl/%s', line)
+            LOG.info('Loading s3://%s/%s', self.options.bucket, line)
             try:
                 temp = TemporaryFile(mode='w+b',
                                      dir=self.options.s3_local_temp_dir)
-                s3client.download_fileobj('commoncrawl', line, temp)
+                s3client.download_fileobj(self.options.bucket, line, temp)
             except botocore.client.ClientError as exception:
                 LOG.error('Failed to download %s: %s', line, exception)
                 return
