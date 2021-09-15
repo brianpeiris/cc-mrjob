@@ -1,23 +1,26 @@
 import gzip
 import logging
 import os.path as Path
+import sys
 
 from tempfile import TemporaryFile
 
 import boto3
 import botocore
-import warc
 
 from mrjob.job import MRJob
 from mrjob.util import log_to_stream
 
-from gzipstream import GzipStreamFile
-
+try:
+    import warc
+except ImportError:
+    import warcio_warc_wrapper as warc
 
 # Set up logging - must ensure that log_to_stream(...) is called only once
 # to avoid duplicate log messages (see https://github.com/Yelp/mrjob/issues/1551).
 LOG = logging.getLogger('CCJob')
-log_to_stream(format="%(asctime)s %(levelname)s %(name)s: %(message)s", name='CCJob')
+log_to_stream(format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+              name='CCJob', stream=sys.stderr)
 
 
 class CCJob(MRJob):
@@ -82,12 +85,12 @@ class CCJob(MRJob):
                 LOG.error('Failed to download %s: %s', line, exception)
                 return
             temp.seek(0)
-            ccfile = warc.WARCFile(fileobj=(GzipStreamFile(temp)))
+            ccfile = warc.WARCFile(filename=temp)
         # If we're local, use files on the local file system
         else:
             line = Path.join(Path.abspath(Path.dirname(__file__)), line)
             LOG.info('Loading local file %s', line)
-            ccfile = warc.WARCFile(fileobj=gzip.open(line))
+            ccfile = warc.WARCFile(filename=line)
 
         for _i, record in enumerate(ccfile):
             for key, value in self.process_record(record):

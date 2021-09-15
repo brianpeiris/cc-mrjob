@@ -23,7 +23,7 @@ mrjob.util.log_to_stream(format="%(asctime)s %(levelname)s %(name)s: %(message)s
 class SitemapExtractor(CCJob):
     """Extract sitemap URLs (http://www.sitemaps.org/) from robots.txt WARC files."""
 
-    sitemap_pattern = re.compile('^sitemap:\\s*(\\S+)', re.I)
+    sitemap_pattern = re.compile(b'^sitemap:\\s*(\\S+)', re.IGNORECASE)
 
     def process_record(self, record):
         """emit: sitemap_url => [host]"""
@@ -43,7 +43,7 @@ class SitemapExtractor(CCJob):
                 self.increment_counter('commoncrawl', 'sitemap URLs found', 1)
                 n_sitemaps += 1
                 try:
-                    sitemap_url.decode("utf-8", "strict")
+                    sitemap_url = sitemap_url.decode('utf-8', 'strict')
                 except UnicodeDecodeError:
                     # invalid encoding, ignore
                     # LOG.warn('Invalid encoding of sitemap URL: %s', sitemap_url)
