@@ -11,10 +11,28 @@ import botocore
 from mrjob.job import MRJob
 from mrjob.util import log_to_stream
 
-try:
+# Define which WARC/ARC parsing library should be used:
+#  'warc'
+#     - used originally with Python 2.x, see
+#         https://github.com/internetarchive/warc
+#         https://warc.readthedocs.io/en/latest/
+#     - forked to support Python 3
+#         https://github.com/commoncrawl/warc
+#  'warcio'
+#     - https://pypi.org/project/warcio/
+#  'fastwarc'
+#     - https://resiliparse.chatnoir.eu/en/latest/api/fastwarc.html
+#
+# Both warcio and and fastwarc are wrapped for API-compatibility
+# but this also means that the full API of warcio and fastwarc is not available.
+#
+WARC_PARSER = 'warc'
+if WARC_PARSER == 'warc':
     import warc
-except ImportError:
+elif WARC_PARSER == 'warcio':
     import warcio_warc_wrapper as warc
+elif WARC_PARSER == 'fastwarc':
+    import fastwarc_warc_wrapper as warc
 
 # Set up logging - must ensure that log_to_stream(...) is called only once
 # to avoid duplicate log messages (see https://github.com/Yelp/mrjob/issues/1551).
@@ -85,12 +103,18 @@ class CCJob(MRJob):
                 LOG.error('Failed to download %s: %s', line, exception)
                 return
             temp.seek(0)
-            ccfile = warc.WARCFile(filename=temp)
+            if line.endswith('.arc') or line.endswith('.arc.gz'):
+                ccfile = warc.ARCFile(fileobj=temp)
+            else:
+                ccfile = warc.WARCFile(fileobj=temp)
         # If we're local, use files on the local file system
         else:
             line = Path.join(Path.abspath(Path.dirname(__file__)), line)
             LOG.info('Loading local file %s', line)
-            ccfile = warc.WARCFile(filename=line)
+            if line.endswith('.arc') or line.endswith('.arc.gz'):
+                ccfile = warc.ARCFile(filename=line)
+            else:
+                ccfile = warc.WARCFile(filename=line)
 
         for _i, record in enumerate(ccfile):
             for key, value in self.process_record(record):
