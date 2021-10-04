@@ -103,10 +103,11 @@ class CCJob(MRJob):
                 LOG.error('Failed to download %s: %s', line, exception)
                 return
             temp.seek(0)
+            compressed = line.endswith('.gz')
             if line.endswith('.arc') or line.endswith('.arc.gz'):
-                ccfile = warc.ARCFile(fileobj=temp)
+                ccfile = warc.ARCFile(fileobj=temp, compress=compressed)
             else:
-                ccfile = warc.WARCFile(fileobj=temp)
+                ccfile = warc.WARCFile(fileobj=temp, compress=compressed)
         # If we're local, use files on the local file system
         else:
             line = Path.join(Path.abspath(Path.dirname(__file__)), line)
